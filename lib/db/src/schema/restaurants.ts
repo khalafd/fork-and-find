@@ -30,6 +30,7 @@ export const restaurants = pgTable("restaurants", {
   bestFor: text("best_for"),
   strengths: text("strengths"),
   weaknesses: text("weaknesses"),
+  priceRange: text("price_range"),
   isFeatured: boolean("is_featured").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

@@ -628,6 +628,9 @@ components:
           type: ["string", "null"]
         weaknesses:
           type: ["string", "null"]
+        priceRange:
+          type: ["string", "null"]
+          description: "Price range indicator e.g. $, $$, $$$, $$$$"
         isFeatured:
           type: boolean
         createdAt:
@@ -737,6 +740,9 @@ components:
           type: ["string", "null"]
         weaknesses:
           type: ["string", "null"]
+        priceRange:
+          type: ["string", "null"]
+          description: "Price range indicator e.g. $, $$, $$$, $$$$"
         isFeatured:
           type: boolean
         createdAt:
