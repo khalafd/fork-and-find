@@ -34,16 +34,36 @@ node_modules
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
+pnpm-debug.log
 testem.log
 /typings
+*.log
 
 # System Files
 .DS_Store
 Thumbs.db
 
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
+# Environment files — NEVER commit secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# Drizzle migration outputs
+drizzle/
 
 # Replit
 .cache/
 .local/
+.config/
+.replit
+replit.nix
+
+# Cursor/GitHub instructions (internal)
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+# Build source maps (large, not needed in repo)
+*.mjs.map
