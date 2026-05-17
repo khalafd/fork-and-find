@@ -7,10 +7,12 @@
     "hello": "tsx ./src/hello.ts",
     "gh-push": "tsx ./src/gh-push.ts",
     "seed": "tsx ./src/seed.ts",
+    "fix-photos": "tsx src/fix-photos.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*"
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
