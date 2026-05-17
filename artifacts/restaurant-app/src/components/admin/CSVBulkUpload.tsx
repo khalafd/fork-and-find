@@ -11,7 +11,7 @@ import Papa from "papaparse";
 export function CSVBulkUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
-  const [results, setResults] = useState<{created: number, errors: string[]} | null>(null);
+  const [results, setResults] = useState<{created: number, errors: {row?: number, error?: string}[]} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const queryClient = useQueryClient();
@@ -144,7 +144,7 @@ export function CSVBulkUpload() {
                     <p className="text-xs font-semibold text-destructive uppercase tracking-wider mb-2">Errors ({results.errors.length})</p>
                     <div className="max-h-32 overflow-y-auto space-y-1 text-xs text-destructive/80 font-mono bg-background/50 p-2 rounded">
                       {results.errors.map((err, i) => (
-                        <div key={i}>{err}</div>
+                        <div key={i}>{err.row !== undefined ? `Row ${err.row}: ` : ""}{err.error ?? JSON.stringify(err)}</div>
                       ))}
                     </div>
                   </div>

@@ -27,6 +27,10 @@ export interface RestaurantWithDishes {
   /** @nullable */
   menuSourceUrl?: string | null;
   /** @nullable */
+  photoUrl?: string | null;
+  /** @nullable */
+  photoCache?: string | null;
+  /** @nullable */
   ratingSourceNotes?: string | null;
   /** @nullable */
   openingHoursNotes?: string | null;

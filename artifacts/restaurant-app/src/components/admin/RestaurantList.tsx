@@ -9,67 +9,53 @@ import { RestaurantFormDialog } from "./RestaurantFormDialog";
 import { DishManagement } from "./DishManagement";
 import { Badge } from "@/components/ui/badge";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { formatEvidenceLabel } from "@/lib/labels";
 
 export function RestaurantList() {
   const [search, setSearch] = useState("");
   const [selectedRestaurantForEdit, setSelectedRestaurantForEdit] = useState<Restaurant | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
   const [selectedRestaurantForDishes, setSelectedRestaurantForDishes] = useState<Restaurant | null>(null);
-  
   const [restaurantToDelete, setRestaurantToDelete] = useState<Restaurant | null>(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { data: restaurants = [], isLoading } = useListRestaurants({ search }, {
-    query: { queryKey: ['/api/restaurants', { search }] }
+    query: { queryKey: ["/api/restaurants", { search }] },
   });
 
   const deleteMutation = useDeleteRestaurant({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/restaurants'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
         toast({ title: "Restaurant deleted successfully" });
         setRestaurantToDelete(null);
       },
       onError: (error) => {
         toast({ title: "Failed to delete", description: String(error), variant: "destructive" });
-      }
-    }
+      },
+    },
   });
 
-  const handleEdit = (restaurant: Restaurant) => {
-    setSelectedRestaurantForEdit(restaurant);
-    setIsFormOpen(true);
-  };
-
-  const handleCreate = () => {
-    setSelectedRestaurantForEdit(null);
-    setIsFormOpen(true);
-  };
+  const handleEdit = (restaurant: Restaurant) => { setSelectedRestaurantForEdit(restaurant); setIsFormOpen(true); };
+  const handleCreate = () => { setSelectedRestaurantForEdit(null); setIsFormOpen(true); };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="relative w-72">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search restaurants..." 
-            value={search} 
+          <Input
+            placeholder="Search restaurants..."
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-card border-border"
+            className="pl-9 bg-white border-border"
           />
         </div>
         <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -77,10 +63,11 @@ export function RestaurantList() {
         </Button>
       </div>
 
-      <div className="rounded-md border border-border bg-card">
+      <div className="rounded-md border border-border bg-white">
         <Table>
-          <TableHeader className="bg-muted/30">
+          <TableHeader className="bg-muted/20">
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead style={{ width: 40 }}>Photo</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Cuisine</TableHead>
@@ -90,60 +77,67 @@ export function RestaurantList() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : restaurants.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground font-serif italic">No restaurants found</TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground font-serif italic">No restaurants found</TableCell></TableRow>
             ) : (
-              restaurants.map((restaurant) => (
-                <TableRow key={restaurant.id} className="border-border/50 hover:bg-muted/30">
-                  <TableCell className="font-medium text-foreground">{restaurant.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{restaurant.city}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="border-border/50 text-foreground/80 font-normal">{restaurant.cuisine}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs uppercase tracking-wider text-primary">{restaurant.evidenceLevel}</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedRestaurantForDishes(restaurant)} className="text-muted-foreground hover:text-primary">
-                        <UtensilsCrossed className="w-4 h-4 mr-1.5" /> Dishes
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(restaurant)} className="text-muted-foreground hover:text-foreground">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setRestaurantToDelete(restaurant)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              restaurants.map((restaurant) => {
+                const photoSrc = restaurant.photoUrl || restaurant.photoCache;
+                const evidenceLabel = formatEvidenceLabel(restaurant.evidenceLevel, "restaurant");
+                return (
+                  <TableRow key={restaurant.id} className="border-border/50 hover:bg-muted/10">
+                    <TableCell>
+                      {photoSrc ? (
+                        <img
+                          src={photoSrc}
+                          alt=""
+                          style={{ width: 28, height: 28, borderRadius: 4, objectFit: "cover", border: "0.5px solid rgba(0,0,0,0.1)" }}
+                        />
+                      ) : (
+                        <div style={{ width: 28, height: 28, borderRadius: 4, background: "#f0f0f0", border: "0.5px solid rgba(0,0,0,0.1)" }} />
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium text-foreground">{restaurant.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{restaurant.city}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="border-border/50 text-foreground/80 font-normal">{restaurant.cuisine}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-primary">{evidenceLabel || "—"}</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedRestaurantForDishes(restaurant)} className="text-muted-foreground hover:text-primary">
+                          <UtensilsCrossed className="w-4 h-4 mr-1.5" /> Dishes
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(restaurant)} className="text-muted-foreground hover:text-foreground">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setRestaurantToDelete(restaurant)} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
 
-      <RestaurantFormDialog 
-        open={isFormOpen} 
-        onOpenChange={setIsFormOpen} 
-        restaurant={selectedRestaurantForEdit} 
-      />
+      <RestaurantFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} restaurant={selectedRestaurantForEdit} />
 
       {selectedRestaurantForDishes && (
-        <DishManagement 
-          restaurant={selectedRestaurantForDishes} 
-          open={!!selectedRestaurantForDishes} 
-          onOpenChange={(open) => !open && setSelectedRestaurantForDishes(null)} 
+        <DishManagement
+          restaurant={selectedRestaurantForDishes}
+          open={!!selectedRestaurantForDishes}
+          onOpenChange={(open) => !open && setSelectedRestaurantForDishes(null)}
         />
       )}
 
       <AlertDialog open={!!restaurantToDelete} onOpenChange={(open) => !open && setRestaurantToDelete(null)}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-white border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-serif">Delete {restaurantToDelete?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -152,7 +146,7 @@ export function RestaurantList() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-border hover:bg-muted">Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => restaurantToDelete && deleteMutation.mutate({ id: restaurantToDelete.id })}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteMutation.isPending}

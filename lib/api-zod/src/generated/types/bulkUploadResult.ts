@@ -5,8 +5,9 @@
  * Fork & Find Restaurant Discovery API
  * OpenAPI spec version: 0.1.0
  */
+import type { BulkUploadResultErrorsItem } from './bulkUploadResultErrorsItem';
 
 export interface BulkUploadResult {
   created: number;
-  errors: string[];
+  errors: BulkUploadResultErrorsItem[];
 }

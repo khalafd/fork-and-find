@@ -25,6 +25,16 @@ export interface Restaurant {
   websiteUrl?: string | null;
   /** @nullable */
   menuSourceUrl?: string | null;
+  /**
+     * Manually set photo URL
+     * @nullable
+     */
+  photoUrl?: string | null;
+  /**
+     * Auto-fetched og:image from instagramUrl
+     * @nullable
+     */
+  photoCache?: string | null;
   /** @nullable */
   ratingSourceNotes?: string | null;
   /** @nullable */

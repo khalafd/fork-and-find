@@ -11,5 +11,6 @@ export interface OpenaiConversationWithMessages {
   id: number;
   title: string;
   createdAt: Date;
+  updatedAt: Date;
   messages: OpenaiMessage[];
 }

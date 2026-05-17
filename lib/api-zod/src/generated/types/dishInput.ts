@@ -21,4 +21,5 @@ export interface DishInput {
      */
   recommendationScore?: number;
   dietTags?: string;
+  photoUrl?: string;
 }

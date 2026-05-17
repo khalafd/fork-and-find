@@ -9,6 +9,7 @@
 export interface OpenaiMessage {
   id: number;
   conversationId: number;
+  /** user / assistant */
   role: string;
   content: string;
   createdAt: Date;

@@ -28,6 +28,16 @@ export interface Restaurant {
   websiteUrl?: string | null;
   /** @nullable */
   menuSourceUrl?: string | null;
+  /**
+     * Manually set photo URL
+     * @nullable
+     */
+  photoUrl?: string | null;
+  /**
+     * Auto-fetched og:image from instagramUrl
+     * @nullable
+     */
+  photoCache?: string | null;
   /** @nullable */
   ratingSourceNotes?: string | null;
   /** @nullable */
@@ -67,6 +77,7 @@ export interface RestaurantInput {
   instagramUrl?: string;
   websiteUrl?: string;
   menuSourceUrl?: string;
+  photoUrl?: string;
   ratingSourceNotes?: string;
   openingHoursNotes?: string;
   reviewConsensusSummary?: string;
@@ -110,6 +121,8 @@ export interface Dish {
      * @nullable
      */
   dietTags?: string | null;
+  /** @nullable */
+  photoUrl?: string | null;
   createdAt: string;
 }
 
@@ -132,6 +145,10 @@ export interface RestaurantWithDishes {
   websiteUrl?: string | null;
   /** @nullable */
   menuSourceUrl?: string | null;
+  /** @nullable */
+  photoUrl?: string | null;
+  /** @nullable */
+  photoCache?: string | null;
   /** @nullable */
   ratingSourceNotes?: string | null;
   /** @nullable */
@@ -167,6 +184,7 @@ export interface DishInput {
      */
   recommendationScore?: number;
   dietTags?: string;
+  photoUrl?: string;
 }
 
 export interface SuccessResponse {
@@ -190,9 +208,14 @@ export interface BulkUploadInput {
   rows: RestaurantInput[];
 }
 
+export type BulkUploadResultErrorsItem = {
+  row?: number;
+  error?: string;
+};
+
 export interface BulkUploadResult {
   created: number;
-  errors: string[];
+  errors: BulkUploadResultErrorsItem[];
 }
 
 export type AdminStatsTopCuisinesItem = {
@@ -221,34 +244,35 @@ export interface OpenaiConversation {
   id: number;
   title: string;
   createdAt: string;
-}
-
-export interface OpenaiMessage {
-  id: number;
-  conversationId: number;
-  role: string;
-  content: string;
-  createdAt: string;
+  updatedAt: string;
 }
 
 export interface OpenaiConversationInput {
   title: string;
 }
 
-export interface OpenaiMessageInput {
+export interface OpenaiMessage {
+  id: number;
+  conversationId: number;
+  /** user / assistant */
+  role: string;
   content: string;
-  /**
-     * Optional JSON string with selected restaurant/shortlist context
-     * @nullable
-     */
-  restaurantContext?: string | null;
+  createdAt: string;
 }
 
 export interface OpenaiConversationWithMessages {
   id: number;
   title: string;
   createdAt: string;
+  updatedAt: string;
   messages: OpenaiMessage[];
+}
+
+export interface OpenaiMessageInput {
+  /** @minLength 1 */
+  content: string;
+  /** JSON string with selected restaurant + shortlist context */
+  restaurantContext?: string;
 }
 
 export interface OpenaiError {
@@ -262,5 +286,10 @@ cuisine?: string;
 bestFor?: string;
 evidenceLevel?: string;
 search?: string;
+};
+
+export type GetRestaurantPhoto200 = {
+  /** @nullable */
+  photoUrl: string | null;
 };
 

@@ -22,6 +22,7 @@ export const dishes = pgTable("dishes", {
   evidenceLevel: text("evidence_level"), // strong / moderate / weak
   recommendationScore: integer("recommendation_score"), // 1-10
   dietTags: text("diet_tags"),          // comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent
+  photoUrl: text("photo_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

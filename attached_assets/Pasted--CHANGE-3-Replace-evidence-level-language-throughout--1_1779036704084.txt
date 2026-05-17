@@ -1,0 +1,276 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — Replace evidence level language throughout
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Replace the technical evidence language with premium discovery language 
+everywhere in the codebase — frontend components, backend data, admin panel, 
+and the OpenAPI spec descriptions:
+
+Mapping:
+  "strong"   → "Signature dish"     (for dishes)
+  "moderate" → "Crowd favourite"    (for dishes)
+  "weak"     → "Worth a try"        (for dishes)
+
+  For restaurants, replace the evidenceLevel display labels:
+  "strong"   → "Well documented"
+  "moderate" → "Curated pick"
+  "weak"     → "Hidden gem"
+
+Do NOT change the stored database values ("strong", "moderate", "weak") — 
+only change what is displayed to users in the UI. Create a helper function 
+called "formatEvidenceLabel(level: string, type: 'dish' | 'restaurant')" in 
+a new file: artifacts/restaurant-app/src/lib/labels.ts
+
+This function should return the friendly label string given the raw DB value.
+
+Use this helper everywhere an evidence label is shown in the UI.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 4 — New design system: typography and color tokens
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/index.css (or the main global CSS file)
+
+Add Google Fonts import at the top:
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&display=swap');
+
+Add these CSS custom properties to :root:
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --color-brand: #1a1a1a;
+  --color-brand-accent: #B8860B;
+  --color-cream: #FAF8F4;
+  --color-muted: #6b6b6b;
+  --color-card-border: rgba(0, 0, 0, 0.08);
+
+Set the global page background to #FAF8F4 (cream/off-white).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 5 — Redesign the Navbar
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/components/layout/Navbar.tsx
+
+Redesign the navbar with this style:
+- Background: white, bottom border 0.5px rgba(0,0,0,0.08)
+- Left side: "Fork & Find" logo in Playfair Display serif font, 20px, 
+  font-weight 600. The "&" symbol should be in color #B8860B (gold).
+- Right side: a location indicator showing a pin icon + "Al Khobar · Dammam"
+  in 13px muted gray text.
+- Keep any existing navigation links but style them in 13px, color #555, 
+  no underline.
+- Remove any emoji from the navbar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 6 — Redesign the restaurant map sidebar card list
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/pages/discovery.tsx
+File: artifacts/restaurant-app/src/components/map/ (relevant card component)
+
+Replace the current restaurant list items with a new card design:
+
+Each restaurant card should have:
+1. PHOTO AREA (top): 
+   - If restaurant.photoUrl exists: show it as an <img> with 
+     width: 100%, height: 110px, object-fit: cover, border-radius top 
+     corners only.
+   - If no photoUrl: show a colored placeholder div (height: 110px) with 
+     the cuisine type as text. Use these background colors by cuisine:
+       Japanese: #1a2a3a
+       Italian: #3d1a0a  
+       Saudi/Arabic: #1a3020
+       Steakhouse: #2a1505
+       Seafood: #0a2535
+       Default: #2a2a2a
+   - Overlay a badge in top-left corner showing the restaurant's evidence 
+     level using the friendly label from formatEvidenceLabel():
+       "Well documented" → gold badge (#FFF3CD bg, #7B4F00 text)
+       "Curated pick"    → green badge (#DCF0DC bg, #1A5C1A text)
+       "Hidden gem"      → blue badge (#EEF0F8 bg, #2A2A7A text)
+     Badge style: font-size 10px, padding 2px 8px, border-radius 20px, 
+     font-weight 500.
+
+2. CARD BODY (below photo):
+   - Restaurant name: Playfair Display, 14px, font-weight 600, 
+     color #1a1a1a, single line with text-overflow ellipsis.
+   - Meta line: district + cuisine, 11px, color #888.
+   - Score row: 5 small filled/empty dot indicators (7px circles, 
+     filled = #B8860B gold, empty = #e0dcdc), then the 
+     recommendationScore as a number (first dish score or derived 
+     from restaurant data). If no score is available, omit the dots.
+
+3. CARD CONTAINER:
+   - background: white
+   - border-radius: 12px
+   - border: 0.5px solid rgba(0,0,0,0.08)
+   - No box-shadow.
+   - On hover: translateY(-2px) transform, transition 0.15s.
+   - Click opens the detail panel (existing behavior, keep it).
+
+Arrange cards in a scrollable list in the sidebar. On mobile, switch to 
+a horizontal scroll row.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 7 — Redesign the restaurant detail panel
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/components/restaurant/RestaurantDetailPanel.tsx
+
+Redesign the slide-in detail panel:
+
+1. HERO SECTION (top):
+   - If restaurant.photoUrl exists: full-width image, height 160px, 
+     object-fit cover with a dark gradient overlay at the bottom.
+   - If no photoUrl: dark colored block (height 160px) using the same 
+     cuisine-to-color mapping from Change 6.
+   - Restaurant name overlaid at bottom-left of hero in Playfair Display, 
+     20px, white, font-weight 600.
+   - Cuisine + district as subtitle in 12px rgba(255,255,255,0.7).
+   - An X close button top-right (existing close behavior).
+
+2. BODY:
+   - "Signature dishes" section header: 10px uppercase, letter-spacing 
+     0.08em, color #888.
+   - Render the restaurant's dishes as small horizontal cards (flex row, 
+     overflow-x scroll):
+     Each dish mini-card:
+       - Photo area: 60px height. If dish.photoUrl exists, show image. 
+         Otherwise show colored placeholder with dish category icon.
+       - Dish name: 11px, font-weight 500.
+       - Dish evidence badge using formatEvidenceLabel() for 'dish' type:
+           "Signature dish"   → gold (#FFF3CD / #7B4F00)
+           "Crowd favourite"  → green (#DCF0DC / #1A5C1A)
+           "Worth a try"      → blue (#EEF0F8 / #2A2A7A)
+         Font-size 9px.
+
+3. REPLACE the old "strengths/weaknesses" section. Keep the content but 
+   display it differently:
+   - Rename "Strengths" → "Why go" 
+   - Rename "Weaknesses" → "Worth knowing"
+   - Style each as a simple text block, not a bullet list, 13px, 
+     color #555, line-height 1.6.
+   - Remove the "Evidence level: strong/moderate/weak" raw label. 
+     Replace with the friendly label from formatEvidenceLabel().
+
+4. ACTION BUTTONS ROW (bottom, sticky):
+   - "Navigate" button (dark/filled): Opens googleMapsUrl if available, 
+     otherwise opens 
+     https://www.google.com/maps?q={latitude},{longitude} in a new tab.
+     If neither latitude nor googleMapsUrl exists, disable the button.
+   - "Ask the advisor" button (outline): Triggers the chat panel and 
+     sends a pre-filled message: 
+     "Tell me about [restaurant name] — what should I order?"
+   - "Save" button with a heart icon (outline): Adds/removes from 
+     shortlist (existing behavior).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 8 — Map style: darker, cleaner, Google Maps-like
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/components/map/RestaurantMap.tsx
+
+1. TILE LAYER: Replace the current OpenStreetMap tile URL with the 
+   CartoDB Positron (light, minimal) tile layer:
+   URL: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
+   Attribution: © OpenStreetMap contributors © CARTO
+   This gives a clean, minimal map like Google Maps light mode — 
+   no changes to labels, just a cleaner base map.
+
+2. DEFAULT MAP CENTER: Set the default center to Al Khobar / Dammam:
+   center: [26.3927, 50.1815]
+   zoom: 13
+
+3. MAP PINS: Replace the default blue Leaflet markers with custom markers:
+   - Use L.divIcon to create custom HTML pins.
+   - Pin style: small dark circle (#1a1a1a) with a gold dot in center, 
+     diameter 28px, border: 2px solid white.
+   - On hover: scale up slightly (CSS transform scale(1.2)).
+   - When a restaurant pin is selected/active: use the gold color 
+     (#B8860B) as the outer circle instead of dark.
+   - Code template:
+     const createPin = (isActive: boolean) => L.divIcon({
+       className: '',
+       html: `<div style="
+         width:28px; height:28px; border-radius:50%;
+         background:${isActive ? '#B8860B' : '#1a1a1a'};
+         border:2px solid white;
+         display:flex; align-items:center; justify-content:center;
+         cursor:pointer;
+         box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+       "><div style="width:8px;height:8px;border-radius:50%;
+         background:${isActive ? 'white' : '#B8860B'}"></div></div>`,
+       iconSize: [28, 28],
+       iconAnchor: [14, 14],
+     });
+
+4. MAP LAYOUT: The map should occupy 60% of the screen width on desktop. 
+   The sidebar (card list) occupies 40%. Keep existing responsive behavior.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 9 — Update admin panel: add photo URL fields
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/components/admin/RestaurantList.tsx
+(or whichever component handles the restaurant create/edit form)
+
+In the restaurant create/edit form, add a new input field:
+  Label: "Restaurant photo URL"
+  Placeholder: "https://example.com/photo.jpg"
+  Field name: photoUrl
+  Help text below the field (small, gray): 
+    "Paste a direct image URL. Shown on the map card and detail panel."
+
+File: artifacts/restaurant-app/src/components/admin/DishManagement.tsx
+(or whichever component handles dish create/edit)
+
+Add the same field for dishes:
+  Label: "Dish photo URL"
+  Placeholder: "https://example.com/dish.jpg"
+  Field name: photoUrl
+
+Also update the evidence level dropdowns in the admin panel to show 
+both the friendly label AND the stored value, e.g.:
+  "Signature dish (strong)"
+  "Crowd favourite (moderate)"
+  "Worth a try (weak)"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 10 — Filter bar on the discovery page
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/restaurant-app/src/pages/discovery.tsx
+
+Add a horizontal filter chip bar above the restaurant list in the sidebar.
+It should show:
+  - "All" chip (active by default)
+  - One chip per distinct cuisine in the data (fetched from 
+    GET /api/restaurants/cuisines)
+
+Chip style:
+  - font-size: 11px, padding: 4px 12px, border-radius: 20px
+  - Default: transparent background, 0.5px border rgba(0,0,0,0.15), 
+    color #555, font-weight 500.
+  - Active: background #1a1a1a, color white, border-color #1a1a1a.
+  - Clicking a chip filters the visible restaurant cards and map pins 
+    to only that cuisine. "All" shows everything.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 11 — Section header typography
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wherever section headings appear in the sidebar (e.g. "Restaurants near 
+you", "Featured", "Your shortlist"), change them to:
+  - Font: Playfair Display, 16px, font-weight 600, color #1a1a1a.
+  - Accompany with a small count in 11px gray ("12 places").
+
+Remove any emoji from section titles.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 12 — Typecheck and run
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After all changes are applied:
+1. Run: pnpm run typecheck
+2. Fix any TypeScript errors introduced by the new photoUrl fields 
+   (update types/interfaces wherever Restaurant or Dish types are used).
+3. Start the dev server and confirm no runtime errors on load.

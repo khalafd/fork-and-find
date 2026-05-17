@@ -8,7 +8,7 @@ import {
   UpdateRestaurantBody,
   DeleteRestaurantParams,
 } from "@workspace/api-zod";
-import { eq, ilike, or, and, sql } from "drizzle-orm";
+import { eq, ilike, or, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -99,6 +99,62 @@ router.get("/restaurants/cuisines", async (req, res) => {
   } catch (err) {
     req.log.error(err, "listCuisines failed");
     res.status(500).json({ error: "Failed to list cuisines" });
+  }
+});
+
+// GET /restaurants/:id/photo — resolve og:image from Instagram, cache result
+router.get("/restaurants/:id/photo", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+
+    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.id, id));
+    if (!restaurant) return res.status(404).json({ error: "Restaurant not found" });
+
+    // Return cached result if available
+    if (restaurant.photoCache) {
+      return res.json({ photoUrl: restaurant.photoCache });
+    }
+
+    if (!restaurant.instagramUrl) {
+      return res.json({ photoUrl: null });
+    }
+
+    // Fetch og:image from Instagram with a 5 second timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const response = await fetch(restaurant.instagramUrl, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+        },
+      });
+      clearTimeout(timeout);
+
+      const html = await response.text();
+      const match = html.match(/<meta property="og:image" content="([^"]+)"/);
+
+      if (match && match[1]) {
+        const photoUrl = match[1];
+        // Cache in DB
+        await db
+          .update(restaurants)
+          .set({ photoCache: photoUrl, updatedAt: new Date() })
+          .where(eq(restaurants.id, id));
+        return res.json({ photoUrl });
+      }
+
+      return res.json({ photoUrl: null });
+    } catch (fetchErr) {
+      clearTimeout(timeout);
+      req.log.warn(fetchErr, "instagram photo fetch failed");
+      return res.json({ photoUrl: null });
+    }
+  } catch (err) {
+    req.log.error(err, "getRestaurantPhoto failed");
+    res.status(500).json({ error: "Failed to resolve photo" });
   }
 });
 

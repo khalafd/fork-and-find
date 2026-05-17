@@ -41,6 +41,8 @@ export const ListRestaurantsResponseItem = zod.object({
   "instagramUrl": zod.string().nullish(),
   "websiteUrl": zod.string().nullish(),
   "menuSourceUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish().describe('Manually set photo URL'),
+  "photoCache": zod.string().nullish().describe('Auto-fetched og:image from instagramUrl'),
   "ratingSourceNotes": zod.string().nullish(),
   "openingHoursNotes": zod.string().nullish(),
   "reviewConsensusSummary": zod.string().nullish(),
@@ -74,6 +76,7 @@ export const CreateRestaurantBody = zod.object({
   "instagramUrl": zod.string().optional(),
   "websiteUrl": zod.string().optional(),
   "menuSourceUrl": zod.string().optional(),
+  "photoUrl": zod.string().optional(),
   "ratingSourceNotes": zod.string().optional(),
   "openingHoursNotes": zod.string().optional(),
   "reviewConsensusSummary": zod.string().optional(),
@@ -100,6 +103,8 @@ export const ListFeaturedRestaurantsResponseItem = zod.object({
   "instagramUrl": zod.string().nullish(),
   "websiteUrl": zod.string().nullish(),
   "menuSourceUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish().describe('Manually set photo URL'),
+  "photoCache": zod.string().nullish().describe('Auto-fetched og:image from instagramUrl'),
   "ratingSourceNotes": zod.string().nullish(),
   "openingHoursNotes": zod.string().nullish(),
   "reviewConsensusSummary": zod.string().nullish(),
@@ -147,6 +152,8 @@ export const GetRestaurantResponse = zod.object({
   "instagramUrl": zod.string().nullish(),
   "websiteUrl": zod.string().nullish(),
   "menuSourceUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish(),
+  "photoCache": zod.string().nullish(),
   "ratingSourceNotes": zod.string().nullish(),
   "openingHoursNotes": zod.string().nullish(),
   "reviewConsensusSummary": zod.string().nullish(),
@@ -168,6 +175,7 @@ export const GetRestaurantResponse = zod.object({
   "evidenceLevel": zod.string().nullish().describe('strong \/ moderate \/ weak'),
   "recommendationScore": zod.number().nullish().describe('1-10'),
   "dietTags": zod.string().nullish().describe('Comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent'),
+  "photoUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }))
 })
@@ -196,6 +204,7 @@ export const UpdateRestaurantBody = zod.object({
   "instagramUrl": zod.string().optional(),
   "websiteUrl": zod.string().optional(),
   "menuSourceUrl": zod.string().optional(),
+  "photoUrl": zod.string().optional(),
   "ratingSourceNotes": zod.string().optional(),
   "openingHoursNotes": zod.string().optional(),
   "reviewConsensusSummary": zod.string().optional(),
@@ -218,6 +227,8 @@ export const UpdateRestaurantResponse = zod.object({
   "instagramUrl": zod.string().nullish(),
   "websiteUrl": zod.string().nullish(),
   "menuSourceUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish().describe('Manually set photo URL'),
+  "photoCache": zod.string().nullish().describe('Auto-fetched og:image from instagramUrl'),
   "ratingSourceNotes": zod.string().nullish(),
   "openingHoursNotes": zod.string().nullish(),
   "reviewConsensusSummary": zod.string().nullish(),
@@ -240,6 +251,18 @@ export const DeleteRestaurantParams = zod.object({
 
 
 /**
+ * @summary Get resolved photo URL for a restaurant (from Instagram og:image, cached)
+ */
+export const GetRestaurantPhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetRestaurantPhotoResponse = zod.object({
+  "photoUrl": zod.string().nullable()
+})
+
+
+/**
  * @summary List dishes for a restaurant
  */
 export const ListDishesParams = zod.object({
@@ -257,6 +280,7 @@ export const ListDishesResponseItem = zod.object({
   "evidenceLevel": zod.string().nullish().describe('strong \/ moderate \/ weak'),
   "recommendationScore": zod.number().nullish().describe('1-10'),
   "dietTags": zod.string().nullish().describe('Comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent'),
+  "photoUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListDishesResponse = zod.array(ListDishesResponseItem)
@@ -283,7 +307,8 @@ export const CreateDishBody = zod.object({
   "evidenceType": zod.string().optional(),
   "evidenceLevel": zod.string().optional(),
   "recommendationScore": zod.number().min(1).max(createDishBodyRecommendationScoreMax).optional(),
-  "dietTags": zod.string().optional()
+  "dietTags": zod.string().optional(),
+  "photoUrl": zod.string().optional()
 })
 
 
@@ -308,7 +333,8 @@ export const UpdateDishBody = zod.object({
   "evidenceType": zod.string().optional(),
   "evidenceLevel": zod.string().optional(),
   "recommendationScore": zod.number().min(1).max(updateDishBodyRecommendationScoreMax).optional(),
-  "dietTags": zod.string().optional()
+  "dietTags": zod.string().optional(),
+  "photoUrl": zod.string().optional()
 })
 
 export const UpdateDishResponse = zod.object({
@@ -322,6 +348,7 @@ export const UpdateDishResponse = zod.object({
   "evidenceLevel": zod.string().nullish().describe('strong \/ moderate \/ weak'),
   "recommendationScore": zod.number().nullish().describe('1-10'),
   "dietTags": zod.string().nullish().describe('Comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent'),
+  "photoUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -349,6 +376,8 @@ export const GetShortlistResponseItem = zod.object({
   "instagramUrl": zod.string().nullish(),
   "websiteUrl": zod.string().nullish(),
   "menuSourceUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish().describe('Manually set photo URL'),
+  "photoCache": zod.string().nullish().describe('Auto-fetched og:image from instagramUrl'),
   "ratingSourceNotes": zod.string().nullish(),
   "openingHoursNotes": zod.string().nullish(),
   "reviewConsensusSummary": zod.string().nullish(),
@@ -436,6 +465,7 @@ export const BulkUploadRestaurantsBody = zod.object({
   "instagramUrl": zod.string().optional(),
   "websiteUrl": zod.string().optional(),
   "menuSourceUrl": zod.string().optional(),
+  "photoUrl": zod.string().optional(),
   "ratingSourceNotes": zod.string().optional(),
   "openingHoursNotes": zod.string().optional(),
   "reviewConsensusSummary": zod.string().optional(),
@@ -449,7 +479,10 @@ export const BulkUploadRestaurantsBody = zod.object({
 
 export const BulkUploadRestaurantsResponse = zod.object({
   "created": zod.number(),
-  "errors": zod.array(zod.string())
+  "errors": zod.array(zod.object({
+  "row": zod.number().optional(),
+  "error": zod.string().optional()
+}))
 })
 
 
@@ -477,7 +510,8 @@ export const GetAdminStatsResponse = zod.object({
 export const ListOpenaiConversationsResponseItem = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
 })
 export const ListOpenaiConversationsResponse = zod.array(ListOpenaiConversationsResponseItem)
 
@@ -501,10 +535,11 @@ export const GetOpenaiConversationResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
   "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
   "messages": zod.array(zod.object({
   "id": zod.number(),
   "conversationId": zod.number(),
-  "role": zod.string(),
+  "role": zod.string().describe('user \/ assistant'),
   "content": zod.string(),
   "createdAt": zod.coerce.date()
 }))
@@ -529,7 +564,7 @@ export const ListOpenaiMessagesParams = zod.object({
 export const ListOpenaiMessagesResponseItem = zod.object({
   "id": zod.number(),
   "conversationId": zod.number(),
-  "role": zod.string(),
+  "role": zod.string().describe('user \/ assistant'),
   "content": zod.string(),
   "createdAt": zod.coerce.date()
 })
@@ -543,9 +578,12 @@ export const SendOpenaiMessageParams = zod.object({
   "id": zod.coerce.number()
 })
 
+
+
+
 export const SendOpenaiMessageBody = zod.object({
-  "content": zod.string(),
-  "restaurantContext": zod.string().nullish().describe('Optional JSON string with selected restaurant\/shortlist context')
+  "content": zod.string().min(1),
+  "restaurantContext": zod.string().optional().describe('JSON string with selected restaurant + shortlist context')
 })
 
 

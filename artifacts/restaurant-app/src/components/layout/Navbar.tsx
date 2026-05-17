@@ -1,27 +1,35 @@
 import { Link } from "wouter";
-import { Search, Info, Map as MapIcon, LogIn, LayoutDashboard } from "lucide-react";
+import { MapPin, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <MapIcon className="w-5 h-5 text-primary" />
-          <span className="font-serif font-bold text-lg tracking-wide text-foreground">Fork & Find</span>
+    <header className="sticky top-0 z-50 w-full bg-white" style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
+      <div className="mx-auto px-5 h-13 flex items-center justify-between" style={{ height: "52px" }}>
+        <Link href="/" className="flex items-center">
+          <span
+            className="font-serif tracking-wide"
+            style={{ fontSize: "20px", fontWeight: 600, color: "#1a1a1a" }}
+          >
+            Fork{" "}
+            <span style={{ color: "#B8860B" }}>&</span>
+            {" "}Find
+          </span>
         </Link>
 
-        <div className="hidden md:flex items-center space-x-6 text-sm">
-          <div className="flex items-center text-muted-foreground/80 font-medium">
-            <Info className="w-4 h-4 mr-2" />
-            Curated database — not live Google/Tripadvisor data
-          </div>
+        <div className="hidden md:flex items-center gap-1.5" style={{ color: "#888", fontSize: "13px" }}>
+          <MapPin style={{ width: "13px", height: "13px" }} />
+          <span>Al Khobar · Dammam</span>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href="/admin">
-            <Button variant="ghost" size="sm" className="font-medium">
-              <LayoutDashboard className="w-4 h-4 mr-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              style={{ fontSize: "13px", color: "#555" }}
+            >
+              <LayoutDashboard className="w-4 h-4 mr-1.5" />
               Admin
             </Button>
           </Link>

@@ -7,10 +7,8 @@
  */
 
 export interface OpenaiMessageInput {
+  /** @minLength 1 */
   content: string;
-  /**
-     * Optional JSON string with selected restaurant/shortlist context
-     * @nullable
-     */
-  restaurantContext?: string | null;
+  /** JSON string with selected restaurant + shortlist context */
+  restaurantContext?: string;
 }

@@ -21,6 +21,8 @@ export const restaurants = pgTable("restaurants", {
   instagramUrl: text("instagram_url"),
   websiteUrl: text("website_url"),
   menuSourceUrl: text("menu_source_url"),
+  photoUrl: text("photo_url"),
+  photoCache: text("photo_cache"),
   ratingSourceNotes: text("rating_source_notes"),
   openingHoursNotes: text("opening_hours_notes"),
   reviewConsensusSummary: text("review_consensus_summary"),

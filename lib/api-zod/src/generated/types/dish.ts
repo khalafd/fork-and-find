@@ -39,5 +39,7 @@ export interface Dish {
      * @nullable
      */
   dietTags?: string | null;
+  /** @nullable */
+  photoUrl?: string | null;
   createdAt: Date;
 }

@@ -20,6 +20,7 @@ export interface RestaurantInput {
   instagramUrl?: string;
   websiteUrl?: string;
   menuSourceUrl?: string;
+  photoUrl?: string;
   ratingSourceNotes?: string;
   openingHoursNotes?: string;
   reviewConsensusSummary?: string;

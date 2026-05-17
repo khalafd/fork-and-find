@@ -212,6 +212,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /restaurants/{id}/photo:
+    get:
+      operationId: getRestaurantPhoto
+      tags: [restaurants]
+      summary: Get resolved photo URL for a restaurant (from Instagram og:image, cached)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resolved photo URL or null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photoUrl:
+                    type: ["string", "null"]
+                required: [photoUrl]
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── Dishes ───────────────────────────────────────────────────────────────────
   /restaurants/{restaurantId}/dishes:
     get:
@@ -577,6 +606,12 @@ components:
           type: ["string", "null"]
         menuSourceUrl:
           type: ["string", "null"]
+        photoUrl:
+          type: ["string", "null"]
+          description: "Manually set photo URL"
+        photoCache:
+          type: ["string", "null"]
+          description: "Auto-fetched og:image from instagramUrl"
         ratingSourceNotes:
           type: ["string", "null"]
         openingHoursNotes:
@@ -636,6 +671,8 @@ components:
           type: string
         menuSourceUrl:
           type: string
+        photoUrl:
+          type: string
         ratingSourceNotes:
           type: string
         openingHoursNotes:
@@ -681,6 +718,10 @@ components:
         websiteUrl:
           type: ["string", "null"]
         menuSourceUrl:
+          type: ["string", "null"]
+        photoUrl:
+          type: ["string", "null"]
+        photoCache:
           type: ["string", "null"]
         ratingSourceNotes:
           type: ["string", "null"]
@@ -748,6 +789,8 @@ components:
         dietTags:
           type: ["string", "null"]
           description: "Comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent"
+        photoUrl:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -780,6 +823,8 @@ components:
           minimum: 1
           maximum: 10
         dietTags:
+          type: string
+        photoUrl:
           type: string
       required:
         - name
@@ -841,7 +886,12 @@ components:
         errors:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              row:
+                type: integer
+              error:
+                type: string
       required:
         - created
         - errors
@@ -864,9 +914,7 @@ components:
                 type: string
               count:
                 type: integer
-            required:
-              - cuisine
-              - count
+            required: [cuisine, count]
         topCities:
           type: array
           items:
@@ -876,9 +924,7 @@ components:
                 type: string
               count:
                 type: integer
-            required:
-              - city
-              - count
+            required: [city, count]
       required:
         - totalRestaurants
         - totalDishes
@@ -886,6 +932,7 @@ components:
         - topCuisines
         - topCities
 
+    # ── Error ────────────────────────────────────────────────────────────────────
     ErrorResponse:
       type: object
       properties:
@@ -894,7 +941,7 @@ components:
       required:
         - error
 
-    # ── OpenAI ────────────────────────────────────────────────────────────────────
+    # ── OpenAI ───────────────────────────────────────────────────────────────────
     OpenaiConversation:
       type: object
       properties:
@@ -905,10 +952,46 @@ components:
         createdAt:
           type: string
           format: date-time
+        updatedAt:
+          type: string
+          format: date-time
       required:
         - id
         - title
         - createdAt
+        - updatedAt
+
+    OpenaiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+        - messages
 
     OpenaiMessage:
       type: object
@@ -919,6 +1002,7 @@ components:
           type: integer
         role:
           type: string
+          description: "user / assistant"
         content:
           type: string
         createdAt:
@@ -931,44 +1015,17 @@ components:
         - content
         - createdAt
 
-    OpenaiConversationInput:
-      type: object
-      properties:
-        title:
-          type: string
-      required:
-        - title
-
     OpenaiMessageInput:
       type: object
       properties:
         content:
           type: string
+          minLength: 1
         restaurantContext:
-          type: ["string", "null"]
-          description: "Optional JSON string with selected restaurant/shortlist context"
+          type: string
+          description: "JSON string with selected restaurant + shortlist context"
       required:
         - content
-
-    OpenaiConversationWithMessages:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        messages:
-          type: array
-          items:
-            $ref: "#/components/schemas/OpenaiMessage"
-      required:
-        - id
-        - title
-        - createdAt
-        - messages
 
     OpenaiError:
       type: object

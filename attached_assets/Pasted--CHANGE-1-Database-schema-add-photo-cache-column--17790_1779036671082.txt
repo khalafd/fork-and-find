@@ -1,0 +1,99 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — Database schema: add photo cache column
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: lib/db/src/schema/restaurants.ts
+Add one new nullable text column: "photoCache"
+This will store the extracted og:image URL from the restaurant's 
+instagramUrl so we don't re-fetch it on every request.
+
+File: lib/db/src/schema/dishes.ts
+No changes needed — dishes will inherit the restaurant photo or 
+show category placeholders.
+
+After editing, run:
+  pnpm --filter @workspace/db run push
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — New backend route: Instagram photo resolver
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: artifacts/api-server/src/routes/restaurants.ts
+
+Add a new GET endpoint:
+  GET /api/restaurants/:id/photo
+
+Logic:
+  1. Fetch the restaurant from the DB by id.
+  2. If restaurant.photoCache exists and is not empty, return it 
+     immediately: { photoUrl: restaurant.photoCache }
+  3. If restaurant.instagramUrl exists and photoCache is null:
+     a. Use node-fetch (or the built-in fetch in Node 24) to fetch 
+        the Instagram URL with this header:
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)'
+     b. Parse the HTML response body as text.
+     c. Extract the content of the og:image meta tag using a regex:
+        /<meta property="og:image" content="([^"]+)"/
+     d. If found: save the extracted URL to restaurant.photoCache 
+        in the DB, then return { photoUrl: extractedUrl }
+     e. If not found or fetch fails: return { photoUrl: null }
+  4. If no instagramUrl: return { photoUrl: null }
+
+Wrap the fetch in a try/catch. Never let a failed Instagram fetch 
+crash the server or block the restaurant load.
+
+Set a 5 second timeout on the fetch using AbortController:
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  fetch(url, { signal: controller.signal, headers: {...} })
+
+Also add this endpoint to lib/api-spec/openapi.yaml:
+
+  /restaurants/{id}/photo:
+    get:
+      operationId: getRestaurantPhoto
+      tags: [restaurants]
+      summary: Get resolved photo URL for a restaurant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resolved photo URL or null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photoUrl:
+                    type: ["string", "null"]
+                required: [photoUrl]
+
+After adding to openapi.yaml, run codegen:
+  pnpm --filter @workspace/api-spec run codegen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 9 — Admin panel: no photo URL field needed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Since photos come from the instagramUrl field automatically, skip 
+adding a manual photo URL input in the admin panel.
+
+Instead, in the restaurant create/edit form, make sure the 
+"Instagram URL" field has this help text beneath it (small, gray):
+  "Used to automatically pull a preview photo for the map card."
+
+Also add a "Refresh photo" button next to the Instagram URL field 
+that calls GET /api/restaurants/:id/photo and shows a small 
+thumbnail preview if successful. This lets you verify the photo 
+before saving.
+
+Style: small outline button, 11px, same row as the Instagram URL input.
+
+In the restaurant list table in the admin panel, show a small 16x16px 
+thumbnail in a "Photo" column if photoCache is populated, or a gray 
+placeholder square if not. This gives instant visual feedback on which 
+restaurants have photos resolved.

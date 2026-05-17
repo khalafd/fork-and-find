@@ -28,6 +28,7 @@ import type {
   Dish,
   DishInput,
   ErrorResponse,
+  GetRestaurantPhoto200,
   HealthStatus,
   ListRestaurantsParams,
   OpenaiConversation,
@@ -736,6 +737,83 @@ export const useDeleteRestaurant = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getDeleteRestaurantMutationOptions(options));
     }
+
+export const getGetRestaurantPhotoUrl = (id: number,) => {
+
+
+
+
+  return `/api/restaurants/${id}/photo`
+}
+
+/**
+ * @summary Get resolved photo URL for a restaurant (from Instagram og:image, cached)
+ */
+export const getRestaurantPhoto = async (id: number, options?: RequestInit): Promise<GetRestaurantPhoto200> => {
+
+  return customFetch<GetRestaurantPhoto200>(getGetRestaurantPhotoUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRestaurantPhotoQueryKey = (id: number,) => {
+    return [
+    `/api/restaurants/${id}/photo`
+    ] as const;
+    }
+
+
+export const getGetRestaurantPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getRestaurantPhoto>>, TError = ErrorType<ErrorResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRestaurantPhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRestaurantPhotoQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRestaurantPhoto>>> = ({ signal }) => getRestaurantPhoto(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRestaurantPhoto>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRestaurantPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getRestaurantPhoto>>>
+export type GetRestaurantPhotoQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get resolved photo URL for a restaurant (from Instagram og:image, cached)
+ */
+
+export function useGetRestaurantPhoto<TData = Awaited<ReturnType<typeof getRestaurantPhoto>>, TError = ErrorType<ErrorResponse>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRestaurantPhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRestaurantPhotoQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getListDishesUrl = (restaurantId: number,) => {
 

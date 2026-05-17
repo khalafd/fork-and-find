@@ -6,9 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface OpenaiConversation {
-  id: number;
-  title: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type BulkUploadResultErrorsItem = {
+  row?: number;
+  error?: string;
+};

@@ -1,16 +1,7 @@
-import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
-import iconUrl from "leaflet/dist/images/marker-icon.png";
-import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
-import shadowUrl from "leaflet/dist/images/marker-shadow.png";
-
-// Fix Leaflet's default icon bug
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
-
-import { RestaurantWithDishes, Restaurant } from "@workspace/api-client-react";
-import { Badge } from "@/components/ui/badge";
+import { Restaurant } from "@workspace/api-client-react";
 
 interface RestaurantMapProps {
   restaurants: Restaurant[];
@@ -18,18 +9,36 @@ interface RestaurantMapProps {
   onSelect: (id: number) => void;
 }
 
+function createPin(isActive: boolean) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:28px; height:28px; border-radius:50%;
+      background:${isActive ? "#B8860B" : "#1a1a1a"};
+      border:2px solid white;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      box-shadow:0 1px 4px rgba(0,0,0,0.3);
+      transition:transform 0.15s;
+    " onmouseenter="this.style.transform='scale(1.2)'" onmouseleave="this.style.transform='scale(1)'">
+      <div style="width:8px;height:8px;border-radius:50%;background:${isActive ? "white" : "#B8860B"}"></div>
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
+}
+
 function MapUpdater({ selectedId, restaurants }: { selectedId: number | null; restaurants: Restaurant[] }) {
   const map = useMap();
-
   useEffect(() => {
     if (selectedId) {
       const selected = restaurants.find((r) => r.id === selectedId);
       if (selected && selected.latitude && selected.longitude) {
-        map.flyTo([selected.latitude, selected.longitude], 15, { duration: 1.5 });
+        map.flyTo([selected.latitude, selected.longitude], 15, { duration: 1.2 });
       }
     }
   }, [selectedId, restaurants, map]);
-
   return null;
 }
 
@@ -37,47 +46,29 @@ export function RestaurantMap({ restaurants, selectedId, onSelect }: RestaurantM
   return (
     <div className="w-full h-full relative z-0">
       <MapContainer
-        center={[48.8566, 2.3522]} // Default Paris
-        zoom={4}
-        className="w-full h-full bg-background"
+        center={[26.3927, 50.1815]}
+        zoom={13}
+        className="w-full h-full"
         zoomControl={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          className="map-tiles"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
         <MapUpdater selectedId={selectedId} restaurants={restaurants} />
-
         {restaurants.map((restaurant) => {
           if (!restaurant.latitude || !restaurant.longitude) return null;
-          
+          const isActive = restaurant.id === selectedId;
           return (
             <Marker
               key={restaurant.id}
               position={[restaurant.latitude, restaurant.longitude]}
-              eventHandlers={{
-                click: () => onSelect(restaurant.id),
-              }}
-            >
-              <Popup className="restaurant-popup">
-                <div className="flex flex-col gap-1">
-                  <span className="font-serif font-bold text-base text-foreground">{restaurant.name}</span>
-                  <span className="text-xs text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</span>
-                  <Badge variant="outline" className="w-fit mt-1 border-primary/30 text-primary">
-                    {restaurant.evidenceLevel} evidence
-                  </Badge>
-                </div>
-              </Popup>
-            </Marker>
+              icon={createPin(isActive)}
+              eventHandlers={{ click: () => onSelect(restaurant.id) }}
+            />
           );
         })}
       </MapContainer>
-      <style>{`
-        .map-tiles {
-          filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
-        }
-      `}</style>
     </div>
   );
 }
