@@ -7,6 +7,7 @@ interface RestaurantMapProps {
   restaurants: Restaurant[];
   selectedId: number | null;
   onSelect: (id: number) => void;
+  onAskAI: (id: number, name: string) => void;
 }
 
 function createPin(isActive: boolean) {
@@ -42,7 +43,69 @@ function MapUpdater({ selectedId, restaurants }: { selectedId: number | null; re
   return null;
 }
 
-export function RestaurantMap({ restaurants, selectedId, onSelect }: RestaurantMapProps) {
+function RestaurantMarker({
+  restaurant,
+  isActive,
+  onSelect,
+  onAskAI,
+}: {
+  restaurant: Restaurant;
+  isActive: boolean;
+  onSelect: (id: number) => void;
+  onAskAI: (id: number, name: string) => void;
+}) {
+  const map = useMap();
+
+  const handleClick = () => {
+    onSelect(restaurant.id);
+
+    const mapsUrl =
+      restaurant.googleMapsUrl ??
+      `https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`;
+
+    const div = document.createElement("div");
+    div.style.fontFamily = "system-ui, sans-serif";
+    div.style.minWidth = "170px";
+
+    const namePart = restaurant.name ?? "";
+    const metaParts = [restaurant.district, restaurant.cuisine].filter(Boolean).join(" · ");
+
+    div.innerHTML = `
+      <div style="font-weight:600;font-size:13px;color:#1a1a1a;margin-bottom:3px">${namePart}</div>
+      ${metaParts ? `<div style="font-size:11px;color:#888;margin-bottom:10px">${metaParts}</div>` : ""}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <a href="${mapsUrl}" target="_blank" rel="noreferrer"
+           style="flex:1;text-align:center;font-size:12px;font-weight:500;padding:5px 8px;border-radius:6px;background:#f5f5f5;color:#1a1a1a;text-decoration:none;border:0.5px solid rgba(0,0,0,0.12);cursor:pointer">
+          Navigate
+        </a>
+        <button data-ask
+          style="flex:1;font-size:12px;font-weight:500;padding:5px 8px;border-radius:6px;background:#1a1a1a;color:white;border:none;cursor:pointer">
+          Ask advisor
+        </button>
+      </div>
+    `;
+
+    div.querySelector("[data-ask]")?.addEventListener("click", () => {
+      map.closePopup();
+      onAskAI(restaurant.id, restaurant.name);
+    });
+
+    L.popup({ offset: L.point(0, -14), closeButton: true, maxWidth: 240 })
+      .setLatLng([restaurant.latitude!, restaurant.longitude!])
+      .setContent(div)
+      .openOn(map);
+  };
+
+  return (
+    <Marker
+      position={[restaurant.latitude!, restaurant.longitude!]}
+      icon={createPin(isActive)}
+      eventHandlers={{ click: handleClick }}
+    />
+  );
+}
+
+export function RestaurantMap({ restaurants, selectedId, onSelect, onAskAI }: RestaurantMapProps) {
   return (
     <div className="w-full h-full relative z-0">
       <MapContainer
@@ -58,13 +121,13 @@ export function RestaurantMap({ restaurants, selectedId, onSelect }: RestaurantM
         <MapUpdater selectedId={selectedId} restaurants={restaurants} />
         {restaurants.map((restaurant) => {
           if (!restaurant.latitude || !restaurant.longitude) return null;
-          const isActive = restaurant.id === selectedId;
           return (
-            <Marker
+            <RestaurantMarker
               key={restaurant.id}
-              position={[restaurant.latitude, restaurant.longitude]}
-              icon={createPin(isActive)}
-              eventHandlers={{ click: () => onSelect(restaurant.id) }}
+              restaurant={restaurant}
+              isActive={restaurant.id === selectedId}
+              onSelect={onSelect}
+              onAskAI={onAskAI}
             />
           );
         })}

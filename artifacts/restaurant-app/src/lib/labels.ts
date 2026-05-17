@@ -13,7 +13,7 @@ export function formatEvidenceLabel(
   } else {
     switch (level) {
       case "strong":   return "Well documented";
-      case "moderate": return "Curated pick";
+      case "moderate": return "Local favourite";
       case "weak":     return "Hidden gem";
       default:         return level;
     }

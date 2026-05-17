@@ -3,18 +3,50 @@ import { Send, Loader2, Bot, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RestaurantWithDishes, useCreateOpenaiConversation, useListOpenaiMessages, getListOpenaiMessagesQueryKey, OpenaiMessage } from "@workspace/api-client-react";
+import {
+  useCreateOpenaiConversation,
+  useListOpenaiMessages,
+  getListOpenaiMessagesQueryKey,
+  OpenaiMessage,
+} from "@workspace/api-client-react";
 import { getSessionId, getConversationId, setConversationId } from "@/hooks/use-session";
 import ReactMarkdown from "react-markdown";
 
 interface ChatPanelProps {
-  selectedRestaurant: RestaurantWithDishes | null;
-  shortlist: any[];
+  selectedRestaurant?: { name?: string; dishes?: unknown[] } | null;
+  shortlist?: unknown[];
   initialMessage?: string;
   onInitialMessageSent?: () => void;
 }
 
-export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onInitialMessageSent }: ChatPanelProps) {
+const SUGGESTIONS = [
+  "Best wagyu near me",
+  "Quiet spot for a date",
+  "Family dinner tonight",
+  "Best sushi in Khobar",
+  "Something new to try",
+  "What's good right now?",
+];
+
+const pillStyle: React.CSSProperties = {
+  fontSize: 12,
+  padding: "5px 12px",
+  borderRadius: 20,
+  border: "0.5px solid rgba(184,134,11,0.35)",
+  color: "#B8860B",
+  background: "rgba(184,134,11,0.06)",
+  fontWeight: 500,
+  cursor: "pointer",
+  margin: 3,
+  whiteSpace: "nowrap" as const,
+};
+
+export function ChatPanel({
+  selectedRestaurant,
+  shortlist,
+  initialMessage,
+  onInitialMessageSent,
+}: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
@@ -54,7 +86,6 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
     }
   }, [convId]);
 
-  // Auto-send initialMessage when provided
   useEffect(() => {
     if (initialMessage && convId && !isStreaming && !initialSentRef.current) {
       initialSentRef.current = true;
@@ -63,7 +94,6 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
     }
   }, [initialMessage, convId]);
 
-  // Reset the ref when initialMessage changes so new messages can be sent
   useEffect(() => {
     if (!initialMessage) initialSentRef.current = false;
   }, [initialMessage]);
@@ -93,9 +123,9 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
         body: JSON.stringify({
           content: userMsg,
           restaurantContext: JSON.stringify({
-            selected: selectedRestaurant,
+            selected: selectedRestaurant ?? null,
             dishes: selectedRestaurant?.dishes ?? [],
-            shortlist,
+            shortlist: shortlist ?? [],
           }),
         }),
       });
@@ -128,7 +158,7 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
       }
 
       await refetchMessages();
-    } catch (error) {
+    } catch {
       setIsStreaming(false);
     } finally {
       setIsStreaming(false);
@@ -144,6 +174,30 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
 
   return (
     <div className="flex flex-col h-full" style={{ background: "white" }}>
+      {/* Header */}
+      <div
+        style={{
+          padding: "14px 16px 12px",
+          borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "#1a1a1a",
+            lineHeight: 1.2,
+          }}
+        >
+          Your dining advisor
+        </div>
+        <div style={{ fontSize: 11, color: "#B8860B", marginTop: 2, fontWeight: 500 }}>
+          Al Khobar &amp; Dammam
+        </div>
+      </div>
+
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-5 pb-4">
           {localMessages.map((msg) => (
@@ -207,20 +261,48 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
                 className="prose prose-sm max-w-none"
               >
                 <ReactMarkdown>{streamingText}</ReactMarkdown>
-                <span style={{ display: "inline-block", width: 6, height: 14, marginLeft: 2, background: "#B8860B", verticalAlign: "middle", animation: "pulse 1s infinite" }} />
+                <span
+                  style={{
+                    display: "inline-block", width: 6, height: 14, marginLeft: 2,
+                    background: "#B8860B", verticalAlign: "middle", animation: "pulse 1s infinite",
+                  }}
+                />
               </div>
             </div>
           )}
 
           {!localMessages.length && !isStreaming && (
-            <div style={{ paddingTop: 48, textAlign: "center", color: "#aaa" }}>
-              <Bot style={{ width: 40, height: 40, margin: "0 auto 12px", opacity: 0.2 }} />
-              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: "#888", marginBottom: 8, fontStyle: "italic" }}>
-                How can I help your dining plans?
-              </p>
-              <p style={{ fontSize: 12, color: "#bbb", maxWidth: 220, margin: "0 auto" }}>
-                Ask about evidence, pairings, or get personalised recommendations.
-              </p>
+            <div style={{ paddingTop: 16 }}>
+              {/* Greeting bubble */}
+              <div className="flex gap-3 justify-start">
+                <div
+                  style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "#FFF3CD", border: "1px solid #B8860B",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}
+                >
+                  <Bot style={{ width: 14, height: 14, color: "#B8860B" }} />
+                </div>
+                <div
+                  style={{
+                    maxWidth: "85%", borderRadius: 12, padding: "10px 14px", fontSize: 13,
+                    background: "#FAF8F4", border: "0.5px solid rgba(0,0,0,0.08)", color: "#1a1a1a",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Where are you eating tonight? Tell me what you're in the mood for — I know every good table in Khobar and Dammam.
+                </div>
+              </div>
+
+              {/* Suggestion pills */}
+              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", paddingLeft: 40 }}>
+                {SUGGESTIONS.map((s) => (
+                  <button key={s} style={pillStyle} onClick={() => sendMessage(s)}>
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -231,7 +313,7 @@ export function ChatPanel({ selectedRestaurant, shortlist, initialMessage, onIni
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="E.g., What's best for a quiet dinner?"
+            placeholder="Ask about food in Khobar..."
             disabled={isStreaming}
             style={{ fontSize: 13, borderColor: "rgba(0,0,0,0.12)", background: "#FAF8F4" }}
           />

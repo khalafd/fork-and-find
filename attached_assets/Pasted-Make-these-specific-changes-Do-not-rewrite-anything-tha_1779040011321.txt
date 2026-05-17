@@ -1,0 +1,143 @@
+Make these specific changes. Do not rewrite anything that isn't listed. 
+After all changes, run: git add -A && git commit -m "fix: persistent chat, remove list sidebar, warm language" && git push origin main
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: artifacts/restaurant-app/src/pages/discovery.tsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CHANGE: Make the chat panel always visible — not a slide-in overlay.
+
+The layout must be a permanent two-column flex row:
+  Left column:  flex: 1, the map, full height
+  Right column: fixed 340px width, the ChatPanel, full height, 
+                always mounted, never hidden
+
+Remove:
+  - The chatOpen state variable
+  - Any logic that shows/hides the ChatPanel
+  - The restaurant card list sidebar (if it exists)
+  - Any overlay or absolute positioning on the chat panel
+
+Keep:
+  - selectedId state
+  - selectedCuisine state  
+  - chatInitialMessage state
+  - handleAskAI function — but instead of toggling chatOpen,
+    it just updates chatInitialMessage. The chat is already visible.
+
+New layout structure:
+  <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+    <div style={{ flex:1, position:'relative', minWidth:0 }}>
+      <RestaurantMap
+        selectedId={selectedId}
+        onSelect={(id) => setSelectedId(id)}
+      />
+    </div>
+    <div style={{ 
+      width:'340px', flexShrink:0, display:'flex', 
+      flexDirection:'column', borderLeft:'0.5px solid rgba(0,0,0,0.09)',
+      background:'#fff' 
+    }}>
+      <ChatPanel
+        initialMessage={chatInitialMessage}
+        onInitialMessageSent={() => setChatInitialMessage('')}
+      />
+    </div>
+  </div>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: artifacts/restaurant-app/src/components/chat/ChatPanel.tsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CHANGE 1: Replace the opening/empty state UI.
+
+When there are no messages yet, show this instead of a blank panel:
+
+  A greeting message in an AI bubble:
+  "Where are you eating tonight? Tell me what you're in the 
+  mood for — I know every good table in Khobar and Dammam."
+
+  Below the greeting, a wrapping row of suggestion pill buttons:
+    "Best wagyu near me"
+    "Quiet spot for a date"  
+    "Family dinner tonight"
+    "Best sushi in Khobar"
+    "Something new to try"
+    "What's good right now?"
+
+  Pill style:
+    font-size: 12px
+    padding: 5px 12px
+    border-radius: 20px
+    border: 0.5px solid rgba(184,134,11,0.35)
+    color: #B8860B
+    background: rgba(184,134,11,0.06)
+    font-weight: 500
+    cursor: pointer
+    margin: 3px
+  
+  Clicking a pill sends that text as a user message immediately.
+
+CHANGE 2: Update the chat header text.
+  Title: "Your dining advisor"
+  Subtitle: "Al Khobar & Dammam"
+  Keep the existing gold bot avatar.
+
+CHANGE 3: Update the input placeholder.
+  Default: "Ask about food in Khobar..."
+  Keep all existing SSE streaming logic completely unchanged.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: artifacts/restaurant-app/src/components/map/RestaurantMap.tsx  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CHANGE: When a pin is clicked, show a small Leaflet popup ON THE MAP
+instead of (or in addition to) whatever currently happens.
+
+The popup HTML should contain:
+  - Restaurant name (font-weight 600, 13px)
+  - District · Cuisine (11px, gray)
+  - Two buttons side by side:
+      "Navigate" → opens restaurant.googleMapsUrl in new tab,
+                   or https://www.google.com/maps?q={lat},{lng}
+      "Ask advisor" → calls onSelect(restaurant.id) which will
+                      trigger handleAskAI in discovery.tsx
+
+Use L.popup() with a custom className and inject HTML via setContent.
+Keep the existing pin colors and MapUpdater behavior unchanged.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LANGUAGE: Remove "curated" from all user-facing UI text
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Search every file under artifacts/restaurant-app/src/ for the 
+word "curated" and remove or replace it:
+
+  "curated database" → delete the phrase entirely
+  "curated pick" → "local favourite"  
+  "hand-crafted" → delete
+  "evidence level" → delete wherever shown to users
+  "strong evidence" → "Signature dish"
+  "moderate evidence" → "Crowd favourite"  
+  "weak evidence" → "Worth a try"
+
+Also in the AI system prompt (stored in admin_settings in the DB,
+editable via the admin panel), update the default system prompt.
+Find where the default system prompt is seeded 
+(likely in artifacts/api-server/src/routes/admin.ts) and replace it with:
+
+"You are a dining advisor for Al Khobar and Dammam. You know every 
+good restaurant in the area. When someone asks for a recommendation, 
+give them one specific place with confidence — name the dish they 
+should order, explain why in one sentence, and tell them what kind 
+of night it's right for. Be warm, direct, and specific. Never say 
+'curated', 'evidence level', or 'based on our data'. Talk like a 
+friend who eats out a lot."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL STEP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: pnpm run typecheck
+Fix any TypeScript errors.
+Then run: git add -A && git commit -m "fix: persistent chat, warm language, map popups" && git push origin main

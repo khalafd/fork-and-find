@@ -13,7 +13,7 @@ export default function AdminPage() {
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Manage the curated Fork & Find database.</p>
+          <p className="text-muted-foreground">Manage the Fork & Find database.</p>
         </div>
 
         <AdminStats />
