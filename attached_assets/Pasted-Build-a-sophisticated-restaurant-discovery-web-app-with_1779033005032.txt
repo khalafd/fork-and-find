@@ -1,0 +1,238 @@
+Build a sophisticated restaurant discovery web app with a map interface and an AI chatbot assistant.
+
+The app should help users find restaurants, compare options, navigate to a restaurant, and decide what to order based on real menu items, user preferences, and public review consensus.
+
+App concept:
+The screen should be split into two main areas:
+1. A large interactive map on the left
+2. A chatbot / recommendation assistant panel on the right
+
+The app should feel premium, modern, clean, and suitable for fine-dining and casual restaurant discovery.
+
+Core user flow:
+1. User opens the app
+2. The app asks for the user’s location or lets them search a city/area manually
+3. Restaurants appear on the map as pins
+4. User can filter by cuisine, price level, rating, distance, opening status, dietary preference, and dining style
+5. User can click a restaurant pin to see a summary card
+6. The chatbot helps the user choose where to go
+7. After selecting a restaurant, the chatbot recommends what to order
+8. The app can generate a short “dining plan” with restaurant, dishes, navigation link, and booking/contact details if available
+
+Main layout:
+- Left side: interactive map
+- Right side: AI chatbot panel
+- Top bar: search bar, location selector, cuisine filter, rating filter
+- Bottom or floating restaurant cards when restaurants are selected
+- Mobile version should stack the chatbot and map cleanly
+
+Use:
+- React frontend
+- Node.js / Express backend if needed
+- Supabase for database
+- Google Maps API or Mapbox for map interface
+- Google Places API or another restaurant data API for restaurant search
+- OpenAI API or Anthropic Claude API for chatbot responses
+- Environment variables for all API keys
+- Clean reusable component structure
+
+Important:
+Do not hardcode API keys.
+Use environment variables for:
+GOOGLE_MAPS_API_KEY
+GOOGLE_PLACES_API_KEY
+OPENAI_API_KEY
+SUPABASE_URL
+SUPABASE_ANON_KEY
+
+Map features:
+- Show user location if permission is granted
+- Allow manual search by city, district, or landmark
+- Show restaurant pins on the map
+- Clicking a pin opens a restaurant preview
+- Restaurant preview should include:
+  - Restaurant name
+  - Rating
+  - Number of reviews if available
+  - Cuisine/type
+  - Price level if available
+  - Distance from user
+  - Open/closed status if available
+  - Short summary
+  - Button: “Ask AI about this place”
+  - Button: “Get directions”
+  - Button: “Add to shortlist”
+
+Chatbot features:
+The chatbot should act as a credible restaurant recommendation analyst, not a generic assistant.
+
+The chatbot should ask clarifying questions before recommending:
+- Number of people
+- Dietary restrictions
+- Seafood / meat / vegetarian preference
+- Sushi/raw vs cooked preference
+- Light vs indulgent meal
+- Sharing plates vs individual meals
+- Budget sensitivity only if the user asks or implies it
+- Occasion: casual, business, date, family, fine dining, celebration
+
+The chatbot should help with:
+- Choosing between restaurants
+- Explaining why one restaurant may be better than another
+- Recommending what to order
+- Building a balanced order for the group
+- Avoiding dishes that conflict with user preferences
+- Explaining whether the evidence for a dish is strong, moderate, or weak
+- Giving navigation guidance
+- Creating a final dining plan
+
+Dish recommendation rules:
+The chatbot must not hallucinate menu items.
+If the menu is unavailable, it must say so clearly and recommend based only on available evidence.
+If menu data is available, recommendations must be based on:
+- Actual menu items
+- Repeated customer review mentions
+- Google Reviews / Tripadvisor / Yelp / public review consensus where available
+- Restaurant signature dishes where available
+- Critic/blog mentions where available
+
+The chatbot must distinguish:
+- Signature dishes
+- Customer favorites
+- Critic favorites
+- Frequently recommended dishes
+- Weak-evidence dishes
+
+When recommending dishes, structure the answer as:
+1. Starters
+2. Salads
+3. Sushi / Raw, only if relevant
+4. Main Courses
+5. Desserts
+6. Final suggested order
+
+For each dish include:
+- Dish name
+- RAW or COOKED
+- Score from 1 to 10
+- Short factual description
+- Evidence level: strong, moderate, or weak
+- Very short reason for recommending it
+
+Do not show dish prices unless the user specifically asks.
+If the user asks for cost, provide only an approximate total estimate and clearly say it is approximate.
+
+Restaurant comparison features:
+When multiple restaurants are selected, the chatbot should compare them using:
+- Cuisine fit
+- Review strength
+- Distance
+- Opening status
+- Dining occasion fit
+- Menu fit based on user preference
+- Risk level, such as limited menu evidence or weak reviews
+
+Database:
+Create Supabase tables for:
+1. users
+2. restaurants
+3. restaurant_shortlist
+4. conversations
+5. messages
+6. user_preferences
+7. dish_recommendations
+8. restaurant_reviews_summary
+9. chatbot_settings
+
+Store:
+- User messages
+- AI responses
+- Selected restaurants
+- Shortlisted restaurants
+- User preferences
+- Final dining plans
+- Feedback on recommendations
+
+Admin dashboard:
+Create a simple admin dashboard where an admin can:
+- View recent conversations
+- View popular restaurant searches
+- View shortlisted restaurants
+- View user feedback
+- Edit the chatbot system prompt
+- Add or update restaurant menu items manually
+- Add review summary notes for a restaurant
+- Mark certain dishes as verified, signature, or weak-evidence
+
+Restaurant detail page:
+Each restaurant should have a detail panel/page showing:
+- Name
+- Location
+- Rating
+- Review count
+- Cuisine
+- Opening hours if available
+- Contact/website if available
+- Map location
+- Menu section if available
+- AI-generated review consensus summary
+- Recommended dishes
+- User comments/notes if stored
+- Button to ask chatbot about this restaurant
+
+Navigation:
+Add a “Get directions” button that opens Google Maps directions in a new tab using the restaurant coordinates.
+
+Shortlist:
+Users should be able to shortlist restaurants.
+The chatbot should be able to compare shortlisted restaurants and recommend the best one.
+
+Design style:
+- Premium, clean, modern interface
+- Use soft shadows, rounded cards, clean typography
+- Avoid clutter
+- Make the chatbot feel like a concierge / dining advisor
+- Use elegant restaurant cards
+- Use map pins with clear hover/click behavior
+- Responsive design for desktop and mobile
+
+Security and architecture:
+- Keep API keys in environment variables
+- Validate backend requests
+- Avoid exposing secret keys to the frontend
+- Use Supabase row-level security where appropriate
+- Add clear error states if APIs fail
+- Add loading states for restaurant search and chatbot replies
+- Add fallback messages when restaurant data is limited
+
+Development requirements:
+- Create a clear file structure
+- Add comments explaining major files
+- Include setup instructions in README.md
+- Include a list of required API keys
+- Include local development instructions
+- Include deployment instructions for Replit
+- Make the first version fully functional even if some advanced data sources are mocked
+- Use mock restaurant/menu data only where real API data is unavailable, and label it clearly as mock data
+
+MVP scope:
+For the first working version, prioritize:
+1. Map interface
+2. Restaurant search
+3. Clickable restaurant pins
+4. Restaurant cards
+5. Chatbot side panel
+6. Shortlist feature
+7. Basic Supabase storage
+8. AI restaurant recommendation logic
+9. Directions button
+10. Admin page for viewing conversations and editing system prompt
+
+After building the first version, explain:
+- What files were created
+- How the map works
+- How the chatbot works
+- How the database is structured
+- Where I should add API keys
+- How to deploy the app
+- What features should be improved next
