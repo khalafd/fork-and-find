@@ -58,7 +58,7 @@ export function ChatPanel({
   const convId = getConversationId();
 
   const { data: serverMessages, refetch: refetchMessages } = useListOpenaiMessages(convId || 0, {
-    query: { enabled: !!convId, queryKey: getListOpenaiMessagesQueryKey(convId || 0) },
+    query: { enabled: !!(convId && convId > 0), queryKey: getListOpenaiMessagesQueryKey(convId || 0) },
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -88,7 +88,7 @@ export function ChatPanel({
   }, [convId]);
 
   useEffect(() => {
-    if (initialMessage && convId && !isStreaming && !initialSentRef.current) {
+    if (initialMessage && convId && convId > 0 && !isStreaming && !initialSentRef.current) {
       initialSentRef.current = true;
       sendMessage(initialMessage);
       onInitialMessageSent?.();
@@ -122,7 +122,7 @@ export function ChatPanel({
   };
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || !convId || isStreaming) return;
+    if (!text.trim() || !convId || convId <= 0 || isStreaming) return;
 
     const userMsg = text.trim();
     setInput("");
