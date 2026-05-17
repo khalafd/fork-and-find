@@ -8,12 +8,13 @@ import {
   useListOpenaiMessages,
   getListOpenaiMessagesQueryKey,
   OpenaiMessage,
+  RestaurantWithDishes,
 } from "@workspace/api-client-react";
 import { getSessionId, getConversationId, setConversationId } from "@/hooks/use-session";
 import ReactMarkdown from "react-markdown";
 
 interface ChatPanelProps {
-  selectedRestaurant?: { name?: string; dishes?: unknown[] } | null;
+  selectedRestaurant?: RestaurantWithDishes | null;
   shortlist?: unknown[];
   initialMessage?: string;
   onInitialMessageSent?: () => void;
@@ -98,6 +99,28 @@ export function ChatPanel({
     if (!initialMessage) initialSentRef.current = false;
   }, [initialMessage]);
 
+  const buildRestaurantContext = () => {
+    if (selectedRestaurant) {
+      return JSON.stringify({
+        name: selectedRestaurant.name,
+        cuisine: selectedRestaurant.cuisine,
+        district: selectedRestaurant.district,
+        reviewConsensusSummary: selectedRestaurant.reviewConsensusSummary,
+        strengths: selectedRestaurant.strengths,
+        weaknesses: selectedRestaurant.weaknesses,
+        dishes: (selectedRestaurant.dishes ?? []).map((d: { name: string; evidenceLevel?: string | null }) => ({
+          name: d.name,
+          evidenceLevel: d.evidenceLevel,
+        })),
+      });
+    }
+    return JSON.stringify({
+      selected: null,
+      dishes: [],
+      shortlist: shortlist ?? [],
+    });
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || !convId || isStreaming) return;
 
@@ -122,11 +145,7 @@ export function ChatPanel({
         headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
         body: JSON.stringify({
           content: userMsg,
-          restaurantContext: JSON.stringify({
-            selected: selectedRestaurant ?? null,
-            dishes: selectedRestaurant?.dishes ?? [],
-            shortlist: shortlist ?? [],
-          }),
+          restaurantContext: buildRestaurantContext(),
         }),
       });
 
@@ -171,6 +190,10 @@ export function ChatPanel({
     if (!input.trim() || isStreaming) return;
     sendMessage(input);
   };
+
+  const placeholder = selectedRestaurant
+    ? "What should I order here?"
+    : "Ask about food in Khobar...";
 
   return (
     <div className="flex flex-col h-full" style={{ background: "white" }}>
@@ -309,11 +332,29 @@ export function ChatPanel({
       </ScrollArea>
 
       <div style={{ padding: "12px 16px", borderTop: "0.5px solid rgba(0,0,0,0.08)", background: "white" }}>
+        {/* Context pill */}
+        {selectedRestaurant && (
+          <div
+            style={{
+              display: "inline-block",
+              background: "rgba(184,134,11,0.08)",
+              border: "0.5px solid rgba(184,134,11,0.25)",
+              borderRadius: 12,
+              padding: "3px 10px",
+              fontSize: 11,
+              color: "#B8860B",
+              fontWeight: 500,
+              marginBottom: 6,
+            }}
+          >
+            Talking about {selectedRestaurant.name}
+          </div>
+        )}
         <form onSubmit={handleSubmit} style={{ display: "flex", gap: 8 }}>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about food in Khobar..."
+            placeholder={placeholder}
             disabled={isStreaming}
             style={{ fontSize: 13, borderColor: "rgba(0,0,0,0.12)", background: "#FAF8F4" }}
           />

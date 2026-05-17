@@ -8,6 +8,7 @@ interface RestaurantMapProps {
   selectedId: number | null;
   onSelect: (id: number) => void;
   onAskAI: (id: number, name: string) => void;
+  selectedCuisine: string | null;
 }
 
 function createPin(isActive: boolean) {
@@ -105,7 +106,11 @@ function RestaurantMarker({
   );
 }
 
-export function RestaurantMap({ restaurants, selectedId, onSelect, onAskAI }: RestaurantMapProps) {
+export function RestaurantMap({ restaurants, selectedId, onSelect, onAskAI, selectedCuisine }: RestaurantMapProps) {
+  const visible = selectedCuisine
+    ? restaurants.filter((r) => r.cuisine === selectedCuisine)
+    : restaurants;
+
   return (
     <div className="w-full h-full relative z-0">
       <MapContainer
@@ -118,8 +123,8 @@ export function RestaurantMap({ restaurants, selectedId, onSelect, onAskAI }: Re
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        <MapUpdater selectedId={selectedId} restaurants={restaurants} />
-        {restaurants.map((restaurant) => {
+        <MapUpdater selectedId={selectedId} restaurants={visible} />
+        {visible.map((restaurant) => {
           if (!restaurant.latitude || !restaurant.longitude) return null;
           return (
             <RestaurantMarker
