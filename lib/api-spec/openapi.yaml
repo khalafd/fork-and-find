@@ -3,13 +3,24 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Fork & Find Restaurant Discovery API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: restaurants
+    description: Restaurant data operations
+  - name: dishes
+    description: Dish data operations
+  - name: shortlist
+    description: User shortlist operations
+  - name: admin
+    description: Admin operations
+  - name: openai
+    description: OpenAI AI chat operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +35,512 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Restaurants ──────────────────────────────────────────────────────────────
+  /restaurants:
+    get:
+      operationId: listRestaurants
+      tags: [restaurants]
+      summary: List restaurants with optional filters
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: district
+          in: query
+          schema:
+            type: string
+        - name: cuisine
+          in: query
+          schema:
+            type: string
+        - name: bestFor
+          in: query
+          schema:
+            type: string
+        - name: evidenceLevel
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of restaurants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Restaurant"
+    post:
+      operationId: createRestaurant
+      tags: [restaurants]
+      summary: Create a new restaurant (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestaurantInput"
+      responses:
+        "201":
+          description: Created restaurant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+
+  /restaurants/featured:
+    get:
+      operationId: listFeaturedRestaurants
+      tags: [restaurants]
+      summary: List featured restaurants
+      responses:
+        "200":
+          description: Featured restaurants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Restaurant"
+
+  /restaurants/cities:
+    get:
+      operationId: listCities
+      tags: [restaurants]
+      summary: List all distinct cities
+      responses:
+        "200":
+          description: List of cities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /restaurants/cuisines:
+    get:
+      operationId: listCuisines
+      tags: [restaurants]
+      summary: List all distinct cuisines
+      responses:
+        "200":
+          description: List of cuisines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /restaurants/{id}:
+    get:
+      operationId: getRestaurant
+      tags: [restaurants]
+      summary: Get restaurant by ID with dishes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restaurant with dishes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantWithDishes"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateRestaurant
+      tags: [restaurants]
+      summary: Update a restaurant (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestaurantInput"
+      responses:
+        "200":
+          description: Updated restaurant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRestaurant
+      tags: [restaurants]
+      summary: Delete a restaurant (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Dishes ───────────────────────────────────────────────────────────────────
+  /restaurants/{restaurantId}/dishes:
+    get:
+      operationId: listDishes
+      tags: [dishes]
+      summary: List dishes for a restaurant
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dish"
+    post:
+      operationId: createDish
+      tags: [dishes]
+      summary: Add a dish to a restaurant (admin)
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishInput"
+      responses:
+        "201":
+          description: Created dish
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dish"
+
+  /dishes/{id}:
+    put:
+      operationId: updateDish
+      tags: [dishes]
+      summary: Update a dish (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DishInput"
+      responses:
+        "200":
+          description: Updated dish
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dish"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDish
+      tags: [dishes]
+      summary: Delete a dish (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Shortlist ─────────────────────────────────────────────────────────────────
+  /shortlist:
+    get:
+      operationId: getShortlist
+      tags: [shortlist]
+      summary: Get current session shortlist
+      responses:
+        "200":
+          description: List of shortlisted restaurants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Restaurant"
+
+  /shortlist/{restaurantId}:
+    post:
+      operationId: addToShortlist
+      tags: [shortlist]
+      summary: Add restaurant to shortlist
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Added to shortlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      operationId: removeFromShortlist
+      tags: [shortlist]
+      summary: Remove restaurant from shortlist
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed from shortlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ── Admin ─────────────────────────────────────────────────────────────────────
+  /admin/settings:
+    get:
+      operationId: getAdminSettings
+      tags: [admin]
+      summary: Get admin / chatbot settings
+      responses:
+        "200":
+          description: Admin settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+    put:
+      operationId: updateAdminSettings
+      tags: [admin]
+      summary: Update admin / chatbot settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+
+  /admin/bulk-upload:
+    post:
+      operationId: bulkUploadRestaurants
+      tags: [admin]
+      summary: Bulk upload restaurants via CSV (JSON array of rows)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUploadInput"
+      responses:
+        "200":
+          description: Bulk upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUploadResult"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin statistics (conversations, popular cuisines, etc.)
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  # ── OpenAI Chat ───────────────────────────────────────────────────────────────
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiMessageInput"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +551,429 @@ components:
       required:
         - status
 
+    # ── Restaurant ──────────────────────────────────────────────────────────────
+    Restaurant:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        district:
+          type: ["string", "null"]
+        cuisine:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        googleMapsUrl:
+          type: ["string", "null"]
+        instagramUrl:
+          type: ["string", "null"]
+        websiteUrl:
+          type: ["string", "null"]
+        menuSourceUrl:
+          type: ["string", "null"]
+        ratingSourceNotes:
+          type: ["string", "null"]
+        openingHoursNotes:
+          type: ["string", "null"]
+        reviewConsensusSummary:
+          type: ["string", "null"]
+        evidenceLevel:
+          type: ["string", "null"]
+          description: "strong / moderate / weak"
+        bestFor:
+          type: ["string", "null"]
+          description: "Comma-separated: date, business, family, fine dining, casual"
+        strengths:
+          type: ["string", "null"]
+        weaknesses:
+          type: ["string", "null"]
+        isFeatured:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - city
+        - cuisine
+        - isFeatured
+        - createdAt
+        - updatedAt
+
+    RestaurantInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        district:
+          type: string
+        cuisine:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+        longitude:
+          type: number
+        googleMapsUrl:
+          type: string
+        instagramUrl:
+          type: string
+        websiteUrl:
+          type: string
+        menuSourceUrl:
+          type: string
+        ratingSourceNotes:
+          type: string
+        openingHoursNotes:
+          type: string
+        reviewConsensusSummary:
+          type: string
+        evidenceLevel:
+          type: string
+        bestFor:
+          type: string
+        strengths:
+          type: string
+        weaknesses:
+          type: string
+        isFeatured:
+          type: boolean
+      required:
+        - name
+        - city
+        - cuisine
+
+    RestaurantWithDishes:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        district:
+          type: ["string", "null"]
+        cuisine:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        googleMapsUrl:
+          type: ["string", "null"]
+        instagramUrl:
+          type: ["string", "null"]
+        websiteUrl:
+          type: ["string", "null"]
+        menuSourceUrl:
+          type: ["string", "null"]
+        ratingSourceNotes:
+          type: ["string", "null"]
+        openingHoursNotes:
+          type: ["string", "null"]
+        reviewConsensusSummary:
+          type: ["string", "null"]
+        evidenceLevel:
+          type: ["string", "null"]
+        bestFor:
+          type: ["string", "null"]
+        strengths:
+          type: ["string", "null"]
+        weaknesses:
+          type: ["string", "null"]
+        isFeatured:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        dishes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dish"
+      required:
+        - id
+        - name
+        - city
+        - cuisine
+        - isFeatured
+        - createdAt
+        - updatedAt
+        - dishes
+
+    # ── Dish ────────────────────────────────────────────────────────────────────
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        restaurantId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          description: "starter / salad / sushi-raw / main / dessert"
+        rawOrCooked:
+          type: ["string", "null"]
+          description: "raw / cooked"
+        description:
+          type: ["string", "null"]
+        evidenceType:
+          type: ["string", "null"]
+          description: "signature / customer_favorite / critic_favorite / weak_evidence"
+        evidenceLevel:
+          type: ["string", "null"]
+          description: "strong / moderate / weak"
+        recommendationScore:
+          type: ["integer", "null"]
+          description: "1-10"
+        dietTags:
+          type: ["string", "null"]
+          description: "Comma-separated: seafood, meat, chicken, vegetarian, spicy, light, indulgent"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - restaurantId
+        - name
+        - category
+        - createdAt
+
+    DishInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          minLength: 1
+        rawOrCooked:
+          type: string
+        description:
+          type: string
+        evidenceType:
+          type: string
+        evidenceLevel:
+          type: string
+        recommendationScore:
+          type: integer
+          minimum: 1
+          maximum: 10
+        dietTags:
+          type: string
+      required:
+        - name
+        - category
+
+    # ── Shortlist ────────────────────────────────────────────────────────────────
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    # ── Admin ────────────────────────────────────────────────────────────────────
+    AdminSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+        systemPrompt:
+          type: string
+        chatbotName:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - systemPrompt
+        - chatbotName
+        - updatedAt
+
+    AdminSettingsInput:
+      type: object
+      properties:
+        systemPrompt:
+          type: string
+        chatbotName:
+          type: string
+
+    BulkUploadInput:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/RestaurantInput"
+      required:
+        - rows
+
+    BulkUploadResult:
+      type: object
+      properties:
+        created:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - created
+        - errors
+
+    AdminStats:
+      type: object
+      properties:
+        totalRestaurants:
+          type: integer
+        totalDishes:
+          type: integer
+        totalConversations:
+          type: integer
+        topCuisines:
+          type: array
+          items:
+            type: object
+            properties:
+              cuisine:
+                type: string
+              count:
+                type: integer
+            required:
+              - cuisine
+              - count
+        topCities:
+          type: array
+          items:
+            type: object
+            properties:
+              city:
+                type: string
+              count:
+                type: integer
+            required:
+              - city
+              - count
+      required:
+        - totalRestaurants
+        - totalDishes
+        - totalConversations
+        - topCuisines
+        - topCities
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ── OpenAI ────────────────────────────────────────────────────────────────────
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    OpenaiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    OpenaiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+        restaurantContext:
+          type: ["string", "null"]
+          description: "Optional JSON string with selected restaurant/shortlist context"
+      required:
+        - content
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

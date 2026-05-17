@@ -1,6 +1,6 @@
-# [Project name]
+# Fork & Find — Restaurant Discovery
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A curated restaurant discovery platform powered by a hand-crafted PostgreSQL database and an AI dining advisor. Designed to feel like a private dining concierge — sophisticated, honest about evidence levels, and beautifully designed. Data is clearly labeled as curated, not live Google/Tripadvisor data.
 
 ## Run & Operate
 
@@ -10,11 +10,15 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `AI_INTEGRATIONS_OPENAI_BASE_URL` + `AI_INTEGRATIONS_OPENAI_API_KEY` — Replit AI integration
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 (port 8080, proxied to `/api`)
+- Frontend: React + Vite + Tailwind v4 + shadcn/ui + wouter
+- Map: Leaflet + react-leaflet (OpenStreetMap, free)
+- AI Chatbot: Replit AI integration (OpenAI-compatible, model: gpt-5.2), SSE streaming
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
@@ -22,23 +26,42 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for API contract)
+- `lib/db/src/schema/` — DB schemas (restaurants.ts, dishes.ts, admin_settings.ts, conversations.ts, messages.ts)
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/restaurant-app/src/pages/` — discovery.tsx (main view), admin.tsx (admin dashboard)
+- `artifacts/restaurant-app/src/components/` — map/, chat/, restaurant/, admin/, layout/, ui/
+- `lib/api-client-react/` — generated TanStack Query hooks (from Orval)
+- `lib/api-zod/` — generated Zod schemas (from Orval)
+- `lib/integrations-openai-ai-server/` — OpenAI client for server-side
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first API: OpenAPI spec → Orval codegen → React hooks + Zod validators
+- AI chatbot uses raw fetch + SSE streaming (NOT the generated hook, which doesn't support streaming)
+- Shortlist is in-memory (keyed by session IP or X-Session-Id header) — fine for MVP
+- Admin settings (system prompt, chatbot name) stored in DB, seeded with defaults on first GET
+- Leaflet icon bug fixed in map component by manually merging icon options
+- All data labeled "curated database — not live data" throughout UI as a trust signal
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `/` — Map discovery view (60% map + 40% AI chat). Restaurant pins on Leaflet/OSM map. Click a pin to see detail panel with dishes, evidence levels, strengths/weaknesses, links.
+- `/admin` — Admin dashboard: restaurant/dish CRUD, AI system prompt editor, CSV bulk upload, stats
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- No emojis anywhere in the UI
+- Data transparency is a core value — always label "curated database, not live"
+- Evidence levels (strong/moderate/weak) must be visible throughout
+- Chatbot must never hallucinate menu items
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- `react-leaflet@4.2.1` has peer dep warnings with React 19 — works fine in practice
+- Always run codegen after changing `openapi.yaml`: `pnpm --filter @workspace/api-spec run codegen`
+- Never use `!important` inside Tailwind `@apply` rules (Tailwind v4 doesn't support it)
+- AI streaming endpoint uses SSE — use `response.body.getReader()` on the client, not the generated hook
 
 ## Pointers
 
