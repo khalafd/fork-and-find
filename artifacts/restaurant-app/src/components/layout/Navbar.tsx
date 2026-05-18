@@ -22,7 +22,7 @@ export function Navbar() {
           <span>Al Khobar · Dammam</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           <Link href="/admin">
             <Button
               variant="ghost"

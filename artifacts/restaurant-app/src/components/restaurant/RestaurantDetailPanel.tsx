@@ -10,6 +10,7 @@ interface RestaurantDetailPanelProps {
   restaurantId: number;
   onClose: () => void;
   onAskAI: (message?: string) => void;
+  isMobile?: boolean;
 }
 
 function renderStars(score: number): string {
@@ -49,7 +50,7 @@ function formatBestFor(bestFor: string | null | undefined): string {
   return map[first] ?? first;
 }
 
-export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI }: RestaurantDetailPanelProps) {
+export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI, isMobile }: RestaurantDetailPanelProps) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
 
@@ -251,8 +252,13 @@ export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI }: Restau
 
       {/* Action buttons */}
       <div style={{
-        flexShrink: 0, display: "flex", gap: 8, padding: "12px 16px",
-        borderTop: "0.5px solid rgba(0,0,0,0.08)", background: "white",
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: 8,
+        padding: "12px 16px",
+        borderTop: "0.5px solid rgba(0,0,0,0.08)",
+        background: "white",
       }}>
         <button
           onClick={() => mapsUrl && window.open(mapsUrl, "_blank")}
@@ -260,7 +266,10 @@ export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI }: Restau
           style={{
             flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
             background: "#1a1a1a", color: "white", border: "none", borderRadius: 8,
-            fontSize: 12, fontWeight: 500, padding: "9px 0", cursor: mapsUrl ? "pointer" : "not-allowed",
+            fontSize: isMobile ? 14 : 12, fontWeight: 500,
+            minHeight: isMobile ? 48 : undefined,
+            padding: isMobile ? "0 16px" : "9px 0",
+            cursor: mapsUrl ? "pointer" : "not-allowed",
             opacity: mapsUrl ? 1 : 0.4,
           }}
         >
@@ -272,7 +281,10 @@ export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI }: Restau
             flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
             background: "transparent", color: "#B8860B",
             border: "0.5px solid rgba(184,134,11,0.4)", borderRadius: 8,
-            fontSize: 12, fontWeight: 500, padding: "9px 0", cursor: "pointer",
+            fontSize: isMobile ? 14 : 12, fontWeight: 500,
+            minHeight: isMobile ? 48 : undefined,
+            padding: isMobile ? "0 16px" : "9px 0",
+            cursor: "pointer",
           }}
         >
           <MessageCircle style={{ width: 13, height: 13 }} /> Ask advisor
@@ -280,12 +292,16 @@ export function RestaurantDetailPanel({ restaurantId, onClose, onAskAI }: Restau
         <button
           onClick={toggleShortlist}
           style={{
-            width: 38, display: "flex", alignItems: "center", justifyContent: "center",
+            width: isMobile ? "100%" : 38,
+            minHeight: isMobile ? 48 : undefined,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 6 : 0,
             background: "transparent", color: isShortlisted ? "#B8860B" : "#aaa",
             border: "0.5px solid rgba(0,0,0,0.15)", borderRadius: 8, cursor: "pointer",
+            fontSize: isMobile ? 14 : undefined, fontWeight: isMobile ? 500 : undefined,
           }}
         >
           {isShortlisted ? <HeartOff style={{ width: 15, height: 15 }} /> : <Heart style={{ width: 15, height: 15 }} />}
+          {isMobile && (isShortlisted ? "Saved" : "Save")}
         </button>
       </div>
     </div>
